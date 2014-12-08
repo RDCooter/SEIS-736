@@ -37,7 +37,7 @@ public class SimpleAgeCount extends Configured implements Tool {
 	/**
 	 * @version 1.0, December 1, 2014
 	 **/
-	public static class AgePartitioner extends Partitioner<Text, Text> {
+	public static class AgePartitioner extends Partitioner<Text, IntWritable> {
 
 		// @formatter:off
 		/**
@@ -57,7 +57,7 @@ public class SimpleAgeCount extends Configured implements Tool {
 		 **/
 		// @formatter:on
 		@Override
-		public int getPartition(Text aKey, Text aValue, int aNumReduceTasks) {
+		public int getPartition(Text aKey, IntWritable aValue, int aNumReduceTasks) {
 			/*
 			 * Perform a sanity test to avoid any divide by zero exceptions (modulus with zero) when the number of
 			 * reducers is set to zero for some reason.
