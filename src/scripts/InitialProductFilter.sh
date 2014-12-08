@@ -34,28 +34,33 @@ LOG_FILE="${LOCAL_PATH}/Logs/${SCRIPT_NAME}_`date +%s`.log"
 # ---------------------------------------------------------
 MAPREDUCE_JAR_JOB1="NEISSProductIncidents.jar"
 MAPREDUCE_JAR_JOB2="NEISSProductIncidents.jar"
+MAPREDUCE_JAR_JOB3="NEISSProductIncidents.jar"
 
 # ---------------------------------------------------------
 # Define the Driver Class Definitions for each Jar File.
 # ---------------------------------------------------------
 MAIN_CLASS_JOB1="edu.stthomas.gps.project.ProductFilter"
 MAIN_CLASS_JOB2="edu.stthomas.gps.project.SortByYearCaseNbr"
+MAIN_CLASS_JOB3="edu.stthomas.gps.project.KeywordFilterSortByYearCaseNbr"
 
 # ---------------------------------------------------------
 # Define the Directories needed for the multiple jobs.
 # ---------------------------------------------------------
 INPUT_DIRECTORY="${HDFS_PATH}/NEISS"
 INTERMEDIATE_DIRECTORY="${HDFS_PATH}/NEISS_ScratchPad"
-OUTPUT_DIRECTORY="${HDFS_PATH}/NEISS_InitialFilter"
+OUTPUT_DIRECTORY2="${HDFS_PATH}/NEISS_InitialFilter"
+OUTPUT_DIRECTORY3="${HDFS_PATH}/NEISS_KeywordFilter"
 
 # ---------------------------------------------------------
 # Define the Execution Commands for each job.
 # ---------------------------------------------------------
 JOB_1_CMD="${HADOOP} jar ${LOCAL_PATH}/${MAPREDUCE_JAR_JOB1} ${MAIN_CLASS_JOB1} ${INPUT_DIRECTORY} ${INTERMEDIATE_DIRECTORY}"
-JOB_2_CMD="${HADOOP} jar ${LOCAL_PATH}/${MAPREDUCE_JAR_JOB2} ${MAIN_CLASS_JOB2} ${INTERMEDIATE_DIRECTORY} ${OUTPUT_DIRECTORY}"
-CLEANUP_CMD="${HADOOP} fs -rm -r ${INTERMEDIATE_DIRECTORY} ${OUTPUT_DIRECTORY}"
+JOB_2_CMD="${HADOOP} jar ${LOCAL_PATH}/${MAPREDUCE_JAR_JOB2} ${MAIN_CLASS_JOB2} ${INTERMEDIATE_DIRECTORY} ${OUTPUT_DIRECTORY2}"
+JOB_3_CMD="${HADOOP} jar ${LOCAL_PATH}/${MAPREDUCE_JAR_JOB3} ${MAIN_CLASS_JOB3} ${INTERMEDIATE_DIRECTORY} ${OUTPUT_DIRECTORY3} -totalYears 17"
+CLEANUP_CMD="${HADOOP} fs -rm -r ${INTERMEDIATE_DIRECTORY} ${OUTPUT_DIRECTORY2} ${OUTPUT_DIRECTORY3}"
 JOB_1_CAT_CMD="${HADOOP} fs -cat ${INTERMEDIATE_DIRECTORY}/part* | wc -l"
-JOB_2_CAT_CMD="${HADOOP} fs -cat ${OUTPUT_DIRECTORY}/part* | wc -l"
+JOB_2_CAT_CMD="${HADOOP} fs -cat ${OUTPUT_DIRECTORY2}/part* | wc -l"
+JOB_3_CAT_CMD="${HADOOP} fs -cat ${OUTPUT_DIRECTORY3}/part* | wc -l"
 
 # =========================================================
 #
@@ -96,6 +101,21 @@ JOB_2_CAT_CMD="${HADOOP} fs -cat ${OUTPUT_DIRECTORY}/part* | wc -l"
 		echo "+  ${JOB_2_CAT_CMD}"
 #		CAT_COUNT=`${JOB_2_CAT_CMD}`
 		echo "SECOND JOB GENERATED ${CAT_COUNT} RECORDS"
+	fi
+
+	# ---------------------------------------------------------
+	# Perform the Third MapReduce job.
+	# ---------------------------------------------------------
+	echo "+  ${JOB_3_CMD}"
+	${JOB_3_CMD}
+	if [ $? -ne 0 ]; then
+		echo "ERROR OCCURRED DURING THIRD JOB. SEE ${LOG_FILE}"
+#		${CLEANUP_CMD}
+		exit $?
+	else 
+		echo "+  ${JOB_3_CAT_CMD}"
+#		CAT_COUNT=`${JOB_3_CAT_CMD}`
+		echo "THIRD JOB GENERATED ${CAT_COUNT} RECORDS"
 	fi
 
 	# ---------------------------------------------------------
